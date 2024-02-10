@@ -2,9 +2,10 @@
 #include <string>
 #include <vector>
 
-#include "buff/buff.h"
-#include "world.h"
-#include "cost/cost.h"
+#include "buff.h"
+#include "cost.h"
+
+namespace ptcgcore {
 
 enum CardType {
   MONSTER = 1,
@@ -28,11 +29,14 @@ class ICard {
   ICard(std::string &name) : name_(name) {}
   ~ICard() = default;
   std::string GetName() { return name_; };
-  int use_ability(const CostPtr cost, WorldPtr world);
+  int use_ability(const CostPtr cost);
  private:
   std::string name_ = "";
   std::vector<SpecialRule> rule_;
-  std::vector<IBuff> buff_;  // 该卡片此时的 buff
+  // std::vector<IBuff> buff_;  // 该卡片此时的 buff
 };
 
 using CardPtr = std::shared_ptr<ICard>;
+
+
+} // ptcgcore

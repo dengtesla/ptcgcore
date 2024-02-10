@@ -3,6 +3,9 @@
 
 #include "card/card.h"
 #include "buff/buff.h"
+#include "cost/cost.h"
+
+namespace ptcgcore {
 
 class Stage {
  public:
@@ -16,6 +19,7 @@ class Stage {
   int ShuffleDeck();
   int ShufflePrize();
   int DrawOneCard();
+  int ProcessCost(const Cost);
  private:
   int player_id = -1;
   CardPtr active_pose; // 战斗场
@@ -29,3 +33,6 @@ class Stage {
 };
 
 using StagePtr = std::shared_ptr<Stage>;
+using StageConstPtr = std::shared_ptr<const Stage>;
+
+}

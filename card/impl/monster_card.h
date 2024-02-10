@@ -2,6 +2,8 @@
 
 #include "card/card.h"
 
+namespace ptcgcore {
+
 class Ability;
 using AbilityPtr = std::shared_ptr<Ability>;
 
@@ -56,3 +58,5 @@ class Ability {
   Type AbilityType;
 
 };
+
+}

@@ -1,3 +1,7 @@
+#pragma once
+
+namespace ptcgcore {
+
 class IBuff {
  public:
   IBuff(/* args */);
@@ -5,3 +9,5 @@ class IBuff {
  private:
   /* data */
 };
+
+} // ptcgcore

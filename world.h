@@ -1,10 +1,21 @@
+#pragma once
+
+#include <iostream>
 #include <memory>
 
 #include "stage.h"
 
+namespace ptcgcore {
+
 class World {
  public:
-  int GetStage(int player_id, const StagePtr stage);
+  int GetStage(int player_id, StageConstPtr stage);
+  int GAO() {
+    std::cout << "1111111" << std::endl;
+    return 0;
+  }
+
+  int UseCard();
 
  private:
   int go_first_player_id_;
@@ -13,3 +24,5 @@ class World {
 };
 
 using WorldPtr = std::shared_ptr<World>;
+
+}
