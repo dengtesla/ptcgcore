@@ -5,7 +5,7 @@ namespace ptcgcore {
 class IBuff {
  public:
   IBuff(/* args */);
-  ~IBuff();
+  // ~IBuff();
  private:
   /* data */
 };

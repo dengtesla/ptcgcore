@@ -25,6 +25,7 @@ endif()
 
 include_directories(./buff)
 include_directories(./cost)
+include_directories(.)
 
 aux_source_directory(. DIR_SRCS)
 
@@ -38,7 +39,8 @@ target_link_libraries(Simulator Buff)
 target_link_libraries(Simulator Cost)
 
 
-#target_sources(Simulator PRIVATE world.cc)
+target_sources(Simulator PRIVATE world.cc)
+target_sources(Simulator PRIVATE place/card_place.cc)
 #target_include_directories(Simulator PUBLIC
 #  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 #  $<INSTALL_INTERFACE:include/simu>)
