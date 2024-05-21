@@ -1,0 +1,12 @@
+syntax = "proto2";
+
+package ptcgcore.config;
+
+message WorldConfig {
+  repeated StageConfig stage_config = 1;
+}
+
+message StageConfig {
+  optional int32 id = 1;
+  optional string deck_path = 2;
+}

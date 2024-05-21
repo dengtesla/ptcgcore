@@ -16,7 +16,7 @@ class CardCost : public Cost {
     ANY_POSITIVE_NUM = 3,
     AS_MANY_AS_YOU_CAN = 4,
     UP_TO = 5,
-  }
+  };
   enum CardType {
     ANY = 0,
     ITEM = 1,
@@ -48,14 +48,14 @@ class CoinCost : public Cost {
   int num;
 };
 
-'''
+/*
 sample:
  将一张手牌送入墓地发动:
   type: HOW_MANY
   from_place: HAND
   target_place: DISCARD
   card_type: ANY
-'''
+*/
 
 using CostPtr = std::shared_ptr<Cost>;
 

@@ -7,11 +7,17 @@
 #include "buff/buff.h"
 #include "cost/cost.h"
 
+#include "world_config.pb.h"
+
 namespace ptcgcore {
 
 class Stage {
  public:
   Stage(const int& player_id) : player_id_(player_id) {}
+  Stage(const config::StageConfig& stage_config) : player_id_(stage_config.id()) {
+    // use stage_config.deck_path to init deck.
+    InitDeck();
+  }
   // 获取场上状态，const 方法
   int GetPlayerId() const {return player_id_;};
   int GetBench(std::vector<MonsterPile>& bench) const;

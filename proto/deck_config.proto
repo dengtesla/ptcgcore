@@ -1,0 +1,11 @@
+syntax = "proto2";
+
+package ptcgcore.config;
+
+message DeckConfig {
+  optional MainDeck main_deck = 1;
+}
+
+message MainDeck {
+  repeated string card = 1;
+}

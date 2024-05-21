@@ -1,13 +1,13 @@
 #include "world.h"
-#include "card_place.h"
+#include "place/card_place.h"
 
 namespace ptcgcore {
 
 int World::GetStage(int player_id, StagePtr stage) {
-  if (player_id == stage_first_->GetPlayerId()) {
-    stage = stage_first_;
-  } else if (player_id == stage_second_->GetPlayerId()) {
-    stage = stage_second_;
+  if (player_id == player1_stage_->GetPlayerId()) {
+    stage = player1_stage_;
+  } else if (player_id == player2_stage_->GetPlayerId()) {
+    stage = player2_stage_;
   } else {
     // return FAIL;
     return 1;

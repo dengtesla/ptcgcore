@@ -1,0 +1,65 @@
+syntax = "proto2";
+
+package ptcgcore.card.common;
+
+enum CardRule {
+  TAG_TEAM = 1;
+  PRISM_STAR = 2;
+  GX = 3;
+  V = 4;
+  V_MAX = 5;
+  V_UNION = 6;
+  V_STAR = 7;
+  RADIANT = 8; // 光辉
+  EX = 9;
+  ACE_SPEC = 10;
+}
+
+enum BasicCardType {
+  MONSTER = 1;
+  TRAINER = 2;
+  ENERGY = 3;
+}
+
+enum MonsterPhase {
+  BASIC = 1;
+  STAGE_1 = 2;
+  STAGE_2 = 3;
+}
+
+enum ElementalType {
+  UNKNOWN = 0;
+  COLORLESS = 1; // 无色
+  FAIRY = 2; // 妖精
+  DRAGON = 3; // 龙
+  METAL = 4; // 钢
+  DARKNESS = 5; // 恶
+  FIGHTING = 6; // 斗
+  PSYCHIC = 7; // 超
+  LIGHTNING = 8; // 电
+  WATER = 9; // 水
+  FIRE = 10; // 火
+  GRASS = 11; // 草
+  ANY = 12; // 任意
+}
+
+enum TrainerType {
+  SUPPORTER = 1;
+  ITEM = 2;
+  STADIUM = 3;
+}
+
+enum EnergyType {
+  BASIC_ENERGY = 1;
+  SPECIAL_ENERGY = 2;
+}
+
+enum Place {
+  DECK = 1;
+  ACTIVE = 2;
+  BENCHED = 3;
+  DISCARD = 4;
+  LOST_ZONE = 5;
+  PRIZE = 6;
+  HAND = 7;
+}

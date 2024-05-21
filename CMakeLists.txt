@@ -15,6 +15,13 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
+list(APPEND CMAKE_PREFIX_PATH "/mnt/public/szdeng/spdlog_src/spdlog/build")
+
+if(NOT TARGET spdlog)
+    # Stand-alone build
+    find_package(spdlog REQUIRED)
+endif()
+
 # find dependencies
 #find_package(ament_cmake REQUIRED)
 #find_package(rclcpp REQUIRED)
@@ -26,6 +33,8 @@ endif()
 include_directories(./buff)
 include_directories(./cost)
 include_directories(.)
+include_directories(./proto_out)
+include_directories(/mnt/public/szdeng/protobuf_src/protobuf/src)
 
 aux_source_directory(. DIR_SRCS)
 
@@ -34,6 +43,7 @@ add_library(Simulator ${DIR_SRCS})
 install(TARGETS Simulator DESTINATION lib)
 install(FILES world.h DESTINATION include)
 
+target_link_libraries(Simulator spdlog::spdlog)
 target_link_libraries(Simulator Card)
 target_link_libraries(Simulator Buff)
 target_link_libraries(Simulator Cost)

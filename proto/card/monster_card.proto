@@ -1,0 +1,30 @@
+syntax = "proto2";
+
+package ptcgcore.card;
+
+import "card/common.proto";
+import "card/effect_description.proto";
+
+message MonsterCard {
+  optional common.ElementalType elemental_type = 1;
+  optional common.MonsterPhase monster_phase = 2;
+  optional int32 hp = 3;
+  optional common.ElementalType weakness = 4;
+  optional int32 weakness_rate = 5 [default = 2];
+  optional common.ElementalType resistance = 6;
+  optional int32 resistance_num = 7 [default = 30];
+  repeated common.ElementalType retreat = 8;
+  repeated common.CardRule rule = 9;
+  optional Ability ability = 10;
+  repeated Attack attack = 11;
+}
+
+// 特性
+message Ability {
+  repeated common.Description desc = 1;
+}
+
+// 招式
+message Attack {
+  repeated common.Description desc = 1;
+}

@@ -1,0 +1,29 @@
+syntax = "proto2";
+
+package ptcgcore.card.common;
+
+import "card/common.proto";
+
+message Description {
+  enum Type {
+    DRAW_CARD = 1;
+  }
+  optional Type type = 1;
+  oneof msg {
+    DrawCardDesc draw_card_desc = 2;
+  }
+}
+
+message DrawCardDesc {
+  optional int32 num = 1;
+}
+
+message DiscardCardDesc {
+  optional int32 num = 1;
+  repeated BasicCardType discard_type = 2;
+}
+
+message SetPokemonDesc {
+  optional Place from_place = 1;
+  // optional int32 set_num = 2;
+}
