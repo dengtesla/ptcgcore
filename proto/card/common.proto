@@ -15,7 +15,14 @@ enum CardRule {
   ACE_SPEC = 10;
 }
 
+enum KeyWord {
+  ICHIGEKI = 1;
+  RENGEKI = 2;
+  FUSION = 3;
+}
+
 enum BasicCardType {
+  UNKNOWN_CARD_TYPE = 0;
   MONSTER = 1;
   TRAINER = 2;
   ENERGY = 3;
@@ -28,7 +35,7 @@ enum MonsterPhase {
 }
 
 enum ElementalType {
-  UNKNOWN = 0;
+  UNKNOWN_ELEMENTAL_TYPE = 0;
   COLORLESS = 1; // 无色
   FAIRY = 2; // 妖精
   DRAGON = 3; // 龙
@@ -62,4 +69,12 @@ enum Place {
   LOST_ZONE = 5;
   PRIZE = 6;
   HAND = 7;
+}
+
+message Filter {
+  // 各项之间是"且"的关系
+  repeated BasicCardType basic_card_type = 1;
+  repeated MonsterPhase monster_phase = 2;
+  repeated CardRule card_rule = 3;
+  repeated KeyWord key_word = 4;
 }

@@ -3,8 +3,6 @@
 #include <iostream>
 #include <memory>
 
-#include "spdlog/spdlog.h"
-
 #include "place/stage.h"
 #include "place/card_place.h"
 #include "place/stage_watcher.h"
@@ -30,23 +28,7 @@ class World {
     // file::GetProto("", world_config);
   }
 
-  World(const std::string& world_config_path, const int go_first_player_id = 1) {
-    spdlog::info("load world by config {}", world_config_path);
-    file::GetProto(world_config_path, world_config_);
-
-    for (const auto& stage_config : world_config_.stage_config()) {
-      if (stage_config.id() == go_first_player_id) {
-        spdlog::info("init first player's stage.");
-        go_first_player_id_ = stage_config.id();
-        player1_stage_ = std::make_shared<Stage>(stage_config);
-      } else {
-        spdlog::info("init second player's stage.");
-        go_second_player_id_ = stage_config.id();
-        player2_stage_ = std::make_shared<Stage>(stage_config);
-      }
-    }
-    spdlog::info("world init finish!");
-  }
+  World(const std::string& world_config_path, const int go_first_player_id = 1);
   
   int GetStage(int player_id, StagePtr stage);
   int FirstPlayerID() {return go_first_player_id_;};

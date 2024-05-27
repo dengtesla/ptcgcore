@@ -32,19 +32,19 @@ class ICardPlace {
 //   Place target_place;
 // }
 
-class Cost;
-class Condition;
-class Effect;
+// class Cost;
+// class Condition;
+// class Effect;
 
-class Func {
-  // 满足 condition 和 cost 的支付能力才能发动
-  // 支付 cost 后进行 effects 的结算
-  std::vector<Cost> costs;
-  std::vector<Condition> condition;
-  std::vector<Effect> effects;
+// class Func {
+//   // 满足 condition 和 cost 的支付能力才能发动
+//   // 支付 cost 后进行 effects 的结算
+//   std::vector<Cost> costs;
+//   std::vector<Condition> condition;
+//   std::vector<Effect> effects;
 
-  const CardPtr func_card; // 发动这个效果的主体是哪张卡
-};
+//   const CardPtr func_card; // 发动这个效果的主体是哪张卡
+// };
 
 class MonsterPile : public ICardPlace {
   std::vector<CardPtr> monsters;
@@ -57,7 +57,7 @@ class MonsterPile : public ICardPlace {
 
   // int GetUsableFunc(std::vector<void (*)()> functions);
 
-  int GetAllFunc(std::vector<Func>);
+  // int GetAllFunc(std::vector<Func>);
 
 };
 

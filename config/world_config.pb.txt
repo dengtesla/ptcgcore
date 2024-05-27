@@ -1,0 +1,8 @@
+stage_config {
+  id: 1
+  deck_path: ""
+}
+stage_config {
+  id: 2
+  deck_path: ""
+}

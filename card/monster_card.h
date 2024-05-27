@@ -6,6 +6,8 @@
 #include "cost/cost.h"
 #include "world.h"
 
+#include "card.pb.h"
+
 namespace ptcgcore {
 
 class Ability;
@@ -26,17 +28,19 @@ enum MonsterRule {
 
 class MonsterCard : public ICard {
  public:
-  MonsterCard(std::string& name) {
-    Icard(name);
-    card_type_ = CardType::MONSTER;
+  MonsterCard(const std::string& name) : ICard(name) {
+    card_type_ = card::common::BasicCardType::MONSTER;
+  }
+  MonsterCard(const card::Card& card) : ICard(card) {
+    
   }
   // TODO
   // 特性
   // virtual int UseAbility(const CostPtr cost) = 0;
   // // 招式（不止一个）
  private:
-  ElementalType elemental_type;
-  ElementalType weakness;
+  card::common::ElementalType elemental_type;
+  card::common::ElementalType weakness;
   // pose 信息
   
 };

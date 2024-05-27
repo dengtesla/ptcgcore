@@ -4,26 +4,51 @@ package ptcgcore.card.common;
 
 import "card/common.proto";
 
+// 一般用于招式/特性的非伤害部分的描述
 message Description {
   enum Type {
     DRAW_CARD = 1;
+    DISCARD_CARD = 2;
+    SET_POKEMON = 3;
   }
   optional Type type = 1;
   oneof msg {
     DrawCardDesc draw_card_desc = 2;
+    DiscardCardDesc discard_card_desc = 3;
+    SetPokemonDesc set_pokemon_desc = 4;
   }
 }
 
+// 一般用于招式的伤害部分的描述
+message DamageWithDesc {
+  enum Type {
+    THROW_COIN = 1;
+  }
+  optional int32 per_damage = 1;
+  optional Type type = 2;
+  oneof msg {
+    ThrowCoinDesc throw_coin_desc = 3;
+  }
+}
+
+// 抽取卡片的描述
 message DrawCardDesc {
   optional int32 num = 1;
 }
 
+// 丢弃卡片的描述
 message DiscardCardDesc {
   optional int32 num = 1;
   repeated BasicCardType discard_type = 2;
 }
 
+// 放置宝可梦的描述
 message SetPokemonDesc {
   optional Place from_place = 1;
-  // optional int32 set_num = 2;
+  optional int32 set_num = 2;
+  repeated Filter filter = 3; // filter 之间是"或"的关系
+}
+
+message ThrowCoinDesc {
+  optional int32 num = 1;
 }

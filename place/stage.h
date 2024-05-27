@@ -15,7 +15,7 @@ class Stage {
  public:
   Stage(const int& player_id) : player_id_(player_id) {}
   Stage(const config::StageConfig& stage_config) : player_id_(stage_config.id()) {
-    // use stage_config.deck_path to init deck.
+    config_.CopyFrom(stage_config);
     InitDeck();
   }
   // 获取场上状态，const 方法
@@ -34,6 +34,7 @@ class Stage {
   int InitDeck();
  private:
   int player_id_ = -1;
+  config::StageConfig config_;
   Stadium stadium_pose; // 竞技场
   MonsterPile active_pose; // 战斗场
   std::vector<MonsterPile> bench_; // 备战区

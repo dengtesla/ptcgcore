@@ -1,0 +1,39 @@
+card {
+  name: "泪眼蜥"
+  type: MONSTER
+  monster_card {
+    elemental_type: WATER
+    monster_phase: BASIC
+    hp: 60
+    weakness: LIGHTNING
+    retreat: ANY
+    attack {
+      damage: 0
+      energy: ANY
+      desc {
+        #从卡组里选择至多3张连击宝可梦放于备战区
+        type: SET_POKEMON
+        set_pokemon_desc {
+          from_place: DECK
+          set_num: 3
+          filter {
+            key_word: ICHIGEKI
+          }
+        }
+      }
+    }
+    attack {
+      damage: 0
+      energy: ANY
+      energy: ANY
+      damage_desc {
+        #投两次硬币，造成正面次数 x20 的伤害
+        per_damage: 20
+        type: THROW_COIN
+        throw_coin_desc {
+          num: 2
+        }
+      }
+    }
+  }
+}

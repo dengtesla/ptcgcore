@@ -1,0 +1,24 @@
+syntax = "proto2";
+
+package playground;
+
+message Command {
+  enum CommandType {
+    UNKNOWN_COMMAND = 0;
+    USE_ABILITY = 1;
+    ATTACK = 2;
+    SET_POKEMON = 3;
+    USE_TRAINER_CARD = 4;
+    EVOLUTE_MONSTER = 5;
+  }
+  optional CommandType type = 1;
+  optional string player_id = 2; // 发送指令的玩家
+  oneof msg {
+    UseAbilityCommand use_ability_command = 3;
+    AttackCommand attack_command = 4;
+  }
+}
+
+message UseAbilityCommand {}
+
+message AttackCommand {}

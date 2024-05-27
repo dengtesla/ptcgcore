@@ -14,9 +14,8 @@ message MonsterCard {
   optional common.ElementalType resistance = 6;
   optional int32 resistance_num = 7 [default = 30];
   repeated common.ElementalType retreat = 8;
-  repeated common.CardRule rule = 9;
-  optional Ability ability = 10;
-  repeated Attack attack = 11;
+  optional Ability ability = 9;
+  repeated Attack attack = 10;
 }
 
 // 特性
@@ -26,5 +25,8 @@ message Ability {
 
 // 招式
 message Attack {
-  repeated common.Description desc = 1;
+  optional int32 damage = 1;
+  repeated common.ElementalType energy = 2;
+  repeated common.DamageWithDesc damage_desc = 3;
+  repeated common.Description desc = 4; // 非伤害的部分
 }

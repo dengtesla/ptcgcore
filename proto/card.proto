@@ -10,9 +10,17 @@ import "card/common.proto";
 message Card {
   optional string name = 1;
   optional common.BasicCardType type = 2;
+  optional string pack = 3;
+  optional string num = 4;
+  repeated common.CardRule rule = 5;
+  repeated common.KeyWord key_word = 6;
   oneof msg {
-    MonsterCard monster_card = 3;
-    TrainerCard trainer_card = 4;
-    EnergyCard energy_card = 5;
+    MonsterCard monster_card = 10;
+    TrainerCard trainer_card = 11;
+    EnergyCard energy_card = 12;
   }
+}
+
+message CardDataset {
+  repeated Card card = 1;
 }
