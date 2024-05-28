@@ -10,22 +10,6 @@
 
 namespace ptcgcore {
 
-class Ability;
-using AbilityPtr = std::shared_ptr<Ability>;
-
-enum MonsterRule {
-  
-};
-
-// enum EvoType {
-//   BASIC = 1,
-//   STAGE_1 = 2,
-//   STAGE_2 = 3,
-//   VMAX = 4,
-//   V_EVO = 5,
-//   V_UNION = 6,
-// };
-
 class MonsterCard : public ICard {
  public:
   MonsterCard(const std::string& name) : ICard(name) {
@@ -43,19 +27,6 @@ class MonsterCard : public ICard {
   card::common::ElementalType weakness;
   // pose 信息
   
-};
-
-// 特性
-class Ability {
-  enum Type {
-    CONTINUOUS = 1,
-    PASSIVE = 2,
-    ACTIVE = 3
-  };
-
- private:
-  Type AbilityType;
-
 };
 
 }

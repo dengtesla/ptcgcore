@@ -87,6 +87,7 @@ target_sources(Simulator PRIVATE proto_out/card/effect_description.pb.cc)
 target_sources(Simulator PRIVATE proto_out/card/energy_card.pb.cc)
 target_sources(Simulator PRIVATE proto_out/card/monster_card.pb.cc)
 target_sources(Simulator PRIVATE proto_out/card/trainer_card.pb.cc)
+target_sources(Simulator PRIVATE proto_out/card/card_state.pb.cc)
 target_sources(Simulator PRIVATE place/stage.cc)
 target_sources(Simulator PRIVATE card/card_factory.cc)
 

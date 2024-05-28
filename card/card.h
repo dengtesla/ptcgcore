@@ -63,6 +63,8 @@ class ICard {
   }
   ~ICard() = default;
   std::string GetName() { return name_; };
+  void SetUniqID(const std::string& uniq_id) { uniq_id_ = uniq_id; };
+  std::string GetUniqID() { return uniq_id_; };
   // virtual int GetUsableFunc(std::vector<void (*)()> functions) = 0;
  protected:
   std::string name_ = "";
@@ -70,6 +72,9 @@ class ICard {
   card::common::BasicCardType card_type_ =
       card::common::BasicCardType::UNKNOWN_CARD_TYPE;
   std::vector<card::common::KeyWord> key_word_;
+  // 用于标识卡组中的这张卡的 id。
+  // 在一副卡组中，每张卡对应不同的 uniq_id_。
+  std::string uniq_id_ = "";
 };
 
 using CardPtr = std::shared_ptr<ICard>;

@@ -14,7 +14,7 @@ message EnergyCard {
 }
 
 message BasicEnergyCard {
-  optional common.ElementalType type = 1;
+  optional common.ElementalType element = 1;
 }
 
 message SpecialEnergyCard {

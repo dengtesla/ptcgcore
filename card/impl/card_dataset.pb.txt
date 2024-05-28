@@ -37,3 +37,13 @@ card {
     }
   }
 }
+card {
+  name: "基本水能量"
+  type:ENERGY
+  energy_card {
+    type: BASIC_ENERGY
+    basic_energy_card {
+      element: WATER
+    }
+  }
+}

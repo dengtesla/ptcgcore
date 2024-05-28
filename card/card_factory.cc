@@ -22,9 +22,9 @@ CardPtr CardFactory::CreateCard(const std::string& card_name) {
   if (card.type() == card::common::BasicCardType::MONSTER) {
     return std::make_shared<MonsterCard>(card);
   } else if (card.type() == card::common::BasicCardType::TRAINER) {
-    return std::make_shared<ICard>(card);
+    return std::make_shared<TrainerCard>(card);
   } else if (card.type() == card::common::BasicCardType::ENERGY) {
-    return std::make_shared<ICard>(card);
+    return std::make_shared<EnergyCard>(card);
   }
   spdlog::error("card type not exist! card: {}", card.DebugString());
   return std::make_shared<ICard>("ERROR");
@@ -32,6 +32,7 @@ CardPtr CardFactory::CreateCard(const std::string& card_name) {
 
 std::shared_ptr<CardFactory> CardFactory::instance = nullptr;
 std::mutex CardFactory::m_mutex;
+std::unordered_map<std::string, card::Card> CardFactory::card_repo_;
 
 
 }  // namespace ptcgcore

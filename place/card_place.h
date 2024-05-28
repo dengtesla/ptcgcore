@@ -47,6 +47,8 @@ class ICardPlace {
 // };
 
 class MonsterPile : public ICardPlace {
+ public:
+  CardPtr main_monster = nullptr;
   std::vector<CardPtr> monsters;
   std::vector<CardPtr> energys;
   std::vector<CardPtr> items; // 一般是唯一的
@@ -62,6 +64,7 @@ class MonsterPile : public ICardPlace {
 };
 
 class Stadium : public ICardPlace {
+ public:
   CardPtr stadium_card;
 };
 

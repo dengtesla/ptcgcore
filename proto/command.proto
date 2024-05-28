@@ -8,17 +8,36 @@ message Command {
     USE_ABILITY = 1;
     ATTACK = 2;
     SET_POKEMON = 3;
-    USE_TRAINER_CARD = 4;
-    EVOLUTE_MONSTER = 5;
+    EVOLUTE_MONSTER = 4;
+    SET_ENERGY = 5;
+    RETREAT = 6;
   }
   optional CommandType type = 1;
-  optional string player_id = 2; // 发送指令的玩家
+  optional int32 player_id = 2; // 发送指令的玩家
   oneof msg {
-    UseAbilityCommand use_ability_command = 3;
-    AttackCommand attack_command = 4;
+    UseAbilityCommand use_ability_command = 11;
+    AttackCommand attack_command = 12;
+    SetPokemonCommand set_pokemon_command = 13;
+    EvoMonsterCommand evo_monster_command = 14;
+    SetEnergyCommand set_energy_command = 15;
+    RetreatCommand retreat_command = 16;
   }
 }
 
 message UseAbilityCommand {}
 
 message AttackCommand {}
+
+message SetPokemonCommand {}
+
+message SetEnergyCommand {
+  optional string energy_card_id = 1;
+  optional string target_pokemon = 2;
+  // how to describe cost?
+}
+
+message EvoMonsterCommand {
+
+}
+
+message RetreatCommand {}

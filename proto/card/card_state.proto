@@ -1,0 +1,43 @@
+syntax = "proto2";
+
+package ptcgcore.card.state;
+
+import "card/common.proto";
+
+message SingleCard {
+  optional string card_name = 1;
+  optional string card_uniq_id = 2;
+}
+
+message MonsterState {
+  optional SingleCard main_pokemon = 1;
+  repeated SingleCard pokemon_pile = 2;
+  repeated SingleCard item = 3;
+  repeated SingleCard energy_card = 4;
+  optional int32 damage = 5;
+}
+
+// 墓地、放逐区、手牌、竞技场
+message CardPileState {
+  repeated SingleCard card = 1;
+}
+
+message StageState {
+  optional int32 player_id = 1;
+  optional MonsterState active_state = 2;
+  repeated MonsterState benched_state = 3;
+  optional CardPileState discard_state = 4;
+  optional CardPileState lost_zone_state = 5;
+  optional CardPileState stadium_state = 6;
+  // 以下为隐藏资源，一般来说只会发布几个 num 字段
+  optional int32 hand_card_num = 101;
+  optional int32 deck_card_num = 102;
+  optional int32 prize_card_num = 103;
+  optional CardPileState deck_state = 104;
+  optional CardPileState prize_state = 105;
+  optional CardPileState hand_state = 106;
+}
+
+message WorldState {
+  repeated StageState stage_state = 1;
+}
