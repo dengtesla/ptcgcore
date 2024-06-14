@@ -9,6 +9,7 @@
 #include "common/file.h"
 
 #include "world_config.pb.h"
+#include "command.pb.h"
 
 namespace ptcgcore {
 
@@ -22,17 +23,17 @@ class World {
     player1_stage_ = std::make_shared<Stage>(first_player_id);
     player2_stage_ = std::make_shared<Stage>(second_player_id);
     StageWatcher::getInstance(player1_stage_, player2_stage_);
-    // stage_first_->InitDeck();
-    // spdlog::info("Welcome to spdlog!");
-    // config::WorldConfig world_config;
-    // file::GetProto("", world_config);
+    players_id_.push_back(first_player_id);
+    players_id_.push_back(second_player_id);
   }
 
   World(const std::string& world_config_path, const int go_first_player_id = 1);
-  
-  int GetStage(int player_id, StagePtr stage);
+
+  int GetStage(const int& player_id, StagePtr stage);
+  int GetOpponentStage(const int& player_id, StagePtr stage);
   int FirstPlayerID() {return go_first_player_id_;};
   int SecondPlayerID() {return go_second_player_id_;};
+  std::vector<int> GetPlayersID() { return players_id_; };
 
   // int UseFunc(const Func& func);
   // 1.使用哪一堆卡
@@ -42,9 +43,15 @@ class World {
 
   int TickSingleAction();
 
+  int Attack(const int& player_id, const playground::AttackCommand& command);
+  bool IsEnergySatisfy(const std::vector<CardPtr>& energys, const card::Attack& attack);
+
+  int CheckWorld();
+
  private:
   int go_first_player_id_;
   int go_second_player_id_;
+  std::vector<int> players_id_; // 记录当前所有的 player 的 id
   StagePtr player1_stage_;
   StagePtr player2_stage_;
   config::WorldConfig world_config_;

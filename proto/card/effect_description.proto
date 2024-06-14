@@ -16,6 +16,7 @@ message Description {
     DrawCardDesc draw_card_desc = 2;
     DiscardCardDesc discard_card_desc = 3;
     SetPokemonDesc set_pokemon_desc = 4;
+    ChangePlayerDesc change_player_desc = 5;
   }
 }
 
@@ -28,6 +29,7 @@ message DamageWithDesc {
   optional Type type = 2;
   oneof msg {
     ThrowCoinDesc throw_coin_desc = 3;
+    DiscardCardDesc discard_card_desc = 4;
   }
 }
 
@@ -51,4 +53,7 @@ message SetPokemonDesc {
 
 message ThrowCoinDesc {
   optional int32 num = 1;
+}
+
+message ChangePlayerDesc {
 }

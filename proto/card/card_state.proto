@@ -41,3 +41,8 @@ message StageState {
 message WorldState {
   repeated StageState stage_state = 1;
 }
+
+// 由玩家向 world 发送的对 state 的请求
+message StateRequest {
+  optional int32 player_id = 1;
+}

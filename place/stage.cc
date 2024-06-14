@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <random>
 
+#include "common/error_code.h"
 #include "place/stage.h"
 #include "common/file.h"
 #include "card/monster_card.h"
@@ -15,7 +16,7 @@ namespace ptcgcore {
 
 int Stage::InitDeck() {
   // use stage_config.deck_path to init deck.
-  int rtn = 1;
+  int rtn = SUCC;
   const auto& deck_path = config_.deck_path();
   spdlog::info("deck_path: {}",deck_path);
   config::DeckConfig deck;
@@ -24,7 +25,7 @@ int Stage::InitDeck() {
   int cnt = 0;
   for (const auto& card_name : deck.main_deck().card()) {
     auto new_card = card_factory->CreateCard(card_name);
-    new_card->SetUniqID(std::to_string(player_id_) + "_" + std::to_string(cnt));
+    new_card->SetUniqID(std::to_string(player_id_) + "_" + std::to_string(cnt++));
     deck_.push_front(new_card);
     spdlog::debug("add card: {}",card_name);
   }
@@ -32,10 +33,45 @@ int Stage::InitDeck() {
 }
 
 int Stage::DrawOneCard() {
+  if (deck_.empty()) {
+    return DECK_EMPTY_ERROR;
+  }
   const auto card = deck_.front();
   hand_.insert(card);
   deck_.pop_front();
-  return 1;
+  return SUCC;
+}
+
+int Stage::DrawCards(const int& num) {
+  for (int i = 0; i < num; i++) {
+    ERR_CHECK(DrawOneCard());
+  }
+  return SUCC;
+}
+
+int Stage::SendHand2Deck() {
+  for (const auto& card : hand_) {
+    deck_.push_front(card);
+  }
+  hand_.clear();
+  return SUCC;
+}
+
+int SetOnePrize() {
+  if (deck_.empty()) {
+    return DECK_EMPTY_ERROR;
+  }
+  const auto card = deck_.front();
+  prize_card_.push_back(card);
+  deck_.pop_front();
+  return SUCC;
+}
+
+int SetPrizes(const int& num) {
+  for (int i =0; i < num; i++) {
+    ERR_CHECK(SetOnePrize());
+  }
+  return SUCC;
 }
 
 int Stage::ShuffleDeck() {
@@ -49,7 +85,7 @@ int Stage::ShuffleDeck() {
   for (const auto& card : tmp_deck) {
     deck_.push_front(card);
   }
-  return 1;
+  return SUCC;
 }
 
 int Stage::SetPokemon(
@@ -62,18 +98,30 @@ int Stage::SetPokemon(
       break;
     }
   }
-  // if (target_pkm == nullptr) {}
+  MonsterPile new_pile;
+  new_pile.monsters.push_back(target_pkm);
+  new_pile.main_monster = target_pkm;
   if (is_active) {
-    active_pose_.monsters.push_back(target_pkm);
-    active_pose_.main_monster = target_pkm;
-  } else {
-    MonsterPile new_pile;
-    new_pile.monsters.push_back(target_pkm);
-    new_pile.main_monster = target_pkm;
-    bench_.emplace_back(new_pile);
+    new_pile.is_active = true;
   }
+  monster_pose_.insert(new_pile);
   hand_.erase(target_pkm);
-  return true;
+  return SUCC;
+}
+
+int Stage::SetEnergy(const std::string& energy_card_uniq_id,
+                     const std::string& target_pkm_uniq_id) {
+  int rtn = SUCC;
+  // TODO
+  MonsterPile monster_pile;
+  rtn = FindMonsterPileByID(target_pkm_uniq_id, &monster_pile);
+  ERR_CHECK(rtn);
+  CardPtr energy_card_ptr = nullptr;
+  rtn = GetCardPtrByIDFromHand(energy_card_uniq_id, energy_card_ptr);
+  ERR_CHECK(rtn);
+  monster_pile.energys.emplace_back(energy_card_ptr);
+  hand_.erase(energy_card_ptr);
+  return SUCC;
 }
 
 int Stage::GetState(
@@ -81,15 +129,19 @@ int Stage::GetState(
     const bool& hidden_hand,
     const bool& hidden_deck,
     const bool& hidden_prize) const {
+  int rtn = SUCC;
   stage_state.set_player_id(player_id_);
-  // active
-  card::state::MonsterState active_state;
-  MonsterPile2State(active_pose_, active_state);
-  stage_state.mutable_active_state()->CopyFrom(active_state);
-  // bench
-  for (const auto& bench_pile : bench_) {
-    auto bench_state = stage_state.add_benched_state();
-    MonsterPile2State(bench_pile, *bench_state);
+  // active and bench
+  for (const auto& pile : monster_pose_) {
+    card::state::MonsterState monster_state;
+    if (pile.is_active) {
+      rtn = MonsterPile2State(pile, *stage_state.mutable_active_state());
+      ERR_CHECK(rtn);
+    } else {
+      auto bench_state = stage_state.add_benched_state();
+      rtn = MonsterPile2State(pile, *bench_state);
+      ERR_CHECK(rtn);
+    }
   }
   // discard
   for (const auto& discard : discard_) {
@@ -141,7 +193,7 @@ int Stage::GetState(
       card_state->set_card_uniq_id(card->GetUniqID());
     }
   }
-  return true;
+  return SUCC;
 }
 
 int Stage::MonsterPile2State(
@@ -174,7 +226,74 @@ int Stage::MonsterPile2State(
   }
   // damage
   monster_state.set_damage(monster_pile.damage_counters);
-  return true;
+  return SUCC;
+}
+
+int Stage::FindMonsterPileByID(const std::string& card_uniq_id,
+                               const MonsterPile* monster_pile) const {
+  monster_pile = nullptr;
+  for (const auto& pile : monster_pose_) {
+    for (const auto& card : pile.monsters) {
+      if (card->GetUniqID() == card_uniq_id) {
+        monster_pile = &pile;
+        return SUCC;
+      }
+    }
+    for (const auto& card : pile.energys) {
+      if (card->GetUniqID() == card_uniq_id) {
+        monster_pile = &pile;
+        return SUCC;
+      }
+    }
+    for (const auto& card : pile.items) {
+      if (card->GetUniqID() == card_uniq_id) {
+        monster_pile = &pile;
+        return SUCC;
+      }
+    }
+  }
+  return CARD_NOT_FOUND_ERROR;
+}
+
+int Stage::GetCardPtrByIDFromHand(const std::string& card_uniq_id, CardPtr card_ptr) const {
+  for (const auto& card : hand_) {
+    if (card->GetUniqID() == card_uniq_id) {
+      card_ptr = card;
+      return SUCC;
+    }
+  }
+  return CARD_NOT_FOUND_ERROR;
+}
+
+int Stage::GetActive(const MonsterPile* active) const {
+  active = nullptr;
+  for (const auto& pile : monster_pose_) {
+    if (pile.is_active) {
+      active = &pile;
+      return SUCC;
+    }
+  }
+  return CARD_NOT_FOUND_ERROR;
+}
+
+int Stage::CheckStage() {
+  for (auto& pile : monster_pose_) {
+    auto monster = std::static_pointer_cast<MonsterCard>(pile.main_monster);
+    if (pile.damage_counters >= monster->HP()) {
+      // 昏厥
+      monster_pose_.erase(pile);
+      for (auto& card : pile.monsters) {
+        discard_.insert(card);
+      }
+      for (auto& card : pile.energys) {
+        discard_.insert(card);
+      }
+      for (auto& card : pile.items) {
+        discard_.insert(card);
+      }
+    }
+  }
+  return SUCC;
 }
 
 }  // namespace ptcgcore

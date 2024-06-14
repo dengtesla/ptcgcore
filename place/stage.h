@@ -28,6 +28,8 @@ class Stage {
   int GetLostZone(std::vector<CardPtr>& lost_zone) const;
   int GetDeck(std::vector<CardPtr>& deck, bool hidden = true) const;
   int GetPrizeCard(std::vector<CardPtr>& prize_card, bool hidden = true) const;
+  int GetActive(const MonsterPile* active) const;
+  int GetPokemonNum() const { return static_cast<int>(monster_pose_.size()); };
 
   int GetState(
       card::state::StageState& stage_state,
@@ -38,19 +40,24 @@ class Stage {
   // 修改场上状态，非 const 方法
   int ShuffleDeck();
   int ShufflePrize();
+  int SetOnePrize();
+  int SetPrizes(const int& num);
   int DrawOneCard();
+  int DrawCards(const int& num);
+  int SendHand2Deck();
   int ProcessCost(const Cost);
   int InitDeck();
   int SetPokemon(
       const std::string& pokemon_uniq_id,
       const bool& is_active = false);
-  int SetEnergy();
+  int SetEnergy(const std::string& energy_card_uniq_id, const std::string& target_pkm_uniq_id);
+  int CheckStage();
+
  private:
   int player_id_ = -1;
   config::StageConfig config_;
   Stadium stadium_pose_; // 竞技场
-  MonsterPile active_pose_; // 战斗场
-  std::vector<MonsterPile> bench_; // 备战区
+  std::multiset<MonsterPile> monster_pose_; // 战斗+备战区
   std::deque<CardPtr> deck_; // 卡组
   std::vector<CardPtr> prize_card_; // 奖赏卡
   std::multiset<CardPtr> hand_; // 手牌
@@ -62,6 +69,17 @@ class Stage {
   int MonsterPile2State(
       const MonsterPile& monster_pile,
       card::state::MonsterState& monster_state) const;
+
+  int FindCard(const std::string& card_uniq_id, CardPtr card_target,
+               card::common::Place& place) const;
+
+  int FindCardFromHand(const std::string& card_uniq_id, const CardPtr card_target) const;
+
+  int FindMonsterFromStage(const std::string& card_uniq_id, const CardPtr card_target) const;
+
+  int FindMonsterPileByID(const std::string& card_uniq_id, const MonsterPile* monster_pile) const;
+
+  int GetCardPtrByIDFromHand(const std::string& card_uniq_id, CardPtr card_ptr) const;
 };
 
 using StagePtr = std::shared_ptr<Stage>;

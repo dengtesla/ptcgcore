@@ -2,6 +2,8 @@ syntax = "proto2";
 
 package playground;
 
+import "card/monster_card.proto";
+
 message Command {
   enum CommandType {
     UNKNOWN_COMMAND = 0;
@@ -11,6 +13,15 @@ message Command {
     EVOLUTE_MONSTER = 4;
     SET_ENERGY = 5;
     RETREAT = 6;
+
+    // 以下为系统发送的指令
+    GAME_START = 101;
+    GAME_OVER = 102;
+    INIT_POKEMON = 103;
+    MOVE_TO_ACTIVE = 104;
+
+    // 表达状态、无其他信息的 command
+    STATE_COMMAND = 201;
   }
   optional CommandType type = 1;
   optional int32 player_id = 2; // 发送指令的玩家
@@ -21,14 +32,33 @@ message Command {
     EvoMonsterCommand evo_monster_command = 14;
     SetEnergyCommand set_energy_command = 15;
     RetreatCommand retreat_command = 16;
+
+    // system command
+    GameStartCommand game_start_command = 101;
+    GameOverCommand game_over_command = 102;
+    InitPokemonCommand init_pokemon_command = 103;
+    MoveToActiveCommand move_to_active_command = 104;
+
+    // state command
+    StateCommand state_command = 201;
   }
 }
 
 message UseAbilityCommand {}
 
-message AttackCommand {}
+message AttackCommand {
+  // 用的什么技能
+  // optional ptcgcore.card.Attack attack = 1;
+  // 用的第几个招式
+  optional int32 attack_num = 1;
+  optional string target_pkm_id = 2; // 攻击对象，默认战斗宝可梦
+  // how to describe cost?
+}
 
-message SetPokemonCommand {}
+message SetPokemonCommand {
+  optional string active_pokemon_id = 1;
+  repeated string pokemon_id = 2;
+}
 
 message SetEnergyCommand {
   optional string energy_card_id = 1;
@@ -36,8 +66,28 @@ message SetEnergyCommand {
   // how to describe cost?
 }
 
-message EvoMonsterCommand {
-
-}
+message EvoMonsterCommand {}
 
 message RetreatCommand {}
+
+
+// system command
+message GameStartCommand {
+  optional int32 first_player = 1;
+}
+
+message GameOverCommand {}
+
+message InitPokemonCommand {}
+
+message MoveToActiveCommand {}
+
+
+// state command
+message StateCommand {
+  enum State {
+    SUCCESS = 1;
+    NO_POKEMON_IN_HAND = 2;
+  }
+  optional State state = 1;
+}

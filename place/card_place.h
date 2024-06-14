@@ -54,12 +54,11 @@ class MonsterPile : public ICardPlace {
   std::vector<CardPtr> items; // 一般是唯一的
 
   int damage_counters = 0; // 伤害指示物
+  bool is_active = false; // 是否为战斗区
 
-  // TODO:
-
-  // int GetUsableFunc(std::vector<void (*)()> functions);
-
-  // int GetAllFunc(std::vector<Func>);
+  bool operator< (const MonsterPile& pile) const {
+    return this->is_active;
+  }
 
 };
 
