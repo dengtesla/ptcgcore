@@ -29,8 +29,8 @@ class World {
 
   World(const std::string& world_config_path, const int go_first_player_id = 1);
 
-  int GetStage(const int& player_id, StagePtr stage);
-  int GetOpponentStage(const int& player_id, StagePtr stage);
+  int GetStage(const int& player_id, StagePtr& stage);
+  int GetOpponentStage(const int& player_id, StagePtr& stage);
   int FirstPlayerID() {return go_first_player_id_;};
   int SecondPlayerID() {return go_second_player_id_;};
   std::vector<int> GetPlayersID() { return players_id_; };

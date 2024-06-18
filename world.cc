@@ -7,7 +7,7 @@
 
 namespace ptcgcore {
 
-int World::GetStage(const int& player_id, StagePtr stage) {
+int World::GetStage(const int& player_id, StagePtr& stage) {
   if (player_id == player1_stage_->GetPlayerId()) {
     stage = player1_stage_;
   } else if (player_id == player2_stage_->GetPlayerId()) {
@@ -18,7 +18,7 @@ int World::GetStage(const int& player_id, StagePtr stage) {
   return SUCC;
 }
 
-int World::GetOpponentStage(const int& player_id, StagePtr stage) {
+int World::GetOpponentStage(const int& player_id, StagePtr& stage) {
   if (players_id_.size() != 2) {
     spdlog::error("player_id is not 2, cannot get opponent!");
     return NOT_IMPLEMENTED_ERROR;
@@ -44,10 +44,12 @@ World::World(const std::string& world_config_path, const int go_first_player_id)
       spdlog::info("init first player's stage.");
       go_first_player_id_ = stage_config.id();
       player1_stage_ = std::make_shared<Stage>(stage_config);
+      players_id_.push_back(stage_config.id());
     } else {
       spdlog::info("init second player's stage.");
       go_second_player_id_ = stage_config.id();
       player2_stage_ = std::make_shared<Stage>(stage_config);
+      players_id_.push_back(stage_config.id());
     }
   }
   spdlog::info("world init finish!");

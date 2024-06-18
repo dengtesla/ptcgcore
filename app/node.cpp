@@ -2,7 +2,12 @@
 
 int main(int argc, char * argv[]) {
   rclcpp::init(argc, argv);
-  rclcpp::spin(std::make_shared<PtcgWorld>());
-  rclcpp::shutdown();
+  auto world = std::make_shared<PtcgWorld>();
+  // world->Setup();
+  rclcpp::executors::MultiThreadedExecutor exector;
+  exector.add_node(world);
+  exector.spin();
+  // rclcpp::spin(world);
+  // rclcpp::shutdown();
   return 0;
 }

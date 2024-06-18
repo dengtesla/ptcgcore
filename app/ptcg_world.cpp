@@ -3,11 +3,10 @@
 
 #include "command.pb.h"
 
-void PtcgWorld::StateCallback(const std_msgs::msg::String::SharedPtr cmd_str) {
+void PtcgWorld::StateCallback(const ProtoMsg::SharedPtr cmd_str) {
   ptcgcore::card::state::StateRequest state_request;
-  state_request.ParseFromString(cmd_str->data);
+  DumpMsg(cmd_str, state_request);
   spdlog::info(state_request.DebugString());
-  ptcgcore::StagePtr stage_ptr = nullptr;
 
   ptcgcore::card::state::WorldState world_state;
   for (const auto& player_id : world_ptr_->GetPlayersID()) {
@@ -22,9 +21,9 @@ void PtcgWorld::StateCallback(const std_msgs::msg::String::SharedPtr cmd_str) {
   }
 
   if (state_request.player_id() == player1_id_) {
-    SendMsg_(player1_state_pub_, world_state);
+    SendMsg(player1_state_pub_, world_state);
   } else {
-    SendMsg_(player2_state_pub_, world_state);
+    SendMsg(player2_state_pub_, world_state);
   }
 }
 
@@ -33,6 +32,8 @@ void PtcgWorld::Setup() {
   ptcgcore::StagePtr second_stage = nullptr;
   world_ptr_->GetStage(world_ptr_->FirstPlayerID(), first_stage);
   world_ptr_->GetStage(world_ptr_->SecondPlayerID(), second_stage);
+  first_stage->ShuffleDeck();
+  second_stage->ShuffleDeck();
   first_stage->DrawCards(7);
   second_stage->DrawCards(7);
 
@@ -41,8 +42,9 @@ void PtcgWorld::Setup() {
   cmd.set_player_id(0);
   cmd.set_type(playground::Command::GAME_START);
   cmd.mutable_game_start_command()->set_first_player(world_ptr_->FirstPlayerID());
-  SendMsg_(player1_cmd_pub_, cmd);
-  SendMsg_(player2_cmd_pub_, cmd);
+  SendMsg(player1_cmd_pub_, cmd);
+  SendMsg(player2_cmd_pub_, cmd);
+  spdlog::info("send player1/2 start cmd!");
   game_start = true;
 
   while (!setup_finish) {
@@ -79,9 +81,9 @@ void PtcgWorld::Attack(const playground::Command& cmd) {
   Pend();
 }
 
-void PtcgWorld::PlayerCallback(const std_msgs::msg::String::SharedPtr cmd_str) {
+void PtcgWorld::PlayerCallback(const ProtoMsg::SharedPtr cmd_str) {
   playground::Command cmd_proto;
-  cmd_proto.ParseFromString(cmd_str->data);
+  DumpMsg(cmd_str, cmd_proto);
   spdlog::info(cmd_proto.DebugString());
 
   // setup 阶段

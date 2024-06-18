@@ -57,7 +57,7 @@ int Stage::SendHand2Deck() {
   return SUCC;
 }
 
-int SetOnePrize() {
+int Stage::SetOnePrize() {
   if (deck_.empty()) {
     return DECK_EMPTY_ERROR;
   }
@@ -67,7 +67,7 @@ int SetOnePrize() {
   return SUCC;
 }
 
-int SetPrizes(const int& num) {
+int Stage::SetPrizes(const int& num) {
   for (int i =0; i < num; i++) {
     ERR_CHECK(SetOnePrize());
   }
@@ -156,17 +156,21 @@ int Stage::GetState(
     card_state->set_card_uniq_id(lost_card->GetUniqID());
   }
   // stadium_state
-  auto stadium_state = stage_state.mutable_stadium_state()->add_card();
-  stadium_state->set_card_name(stadium_pose_.stadium_card->GetName());
-  stadium_state->set_card_uniq_id(stadium_pose_.stadium_card->GetUniqID());
+  if (stadium_pose_) {
+    auto stadium_state = stage_state.mutable_stadium_state()->add_card();
+    stadium_state->set_card_name(stadium_pose_->stadium_card->GetName());
+    stadium_state->set_card_uniq_id(stadium_pose_->stadium_card->GetUniqID());
+  }
   // hidden msg
   if (hidden_hand) {
+    spdlog::info("hidden hand!");
     stage_state.set_hand_card_num(hand_.size());
   } else {
     for (const auto& card : hand_) {
       auto card_state = stage_state.mutable_hand_state()->add_card();
       card_state->set_card_name(card->GetName());
       card_state->set_card_uniq_id(card->GetUniqID());
+      spdlog::info("card in hand: {}", card->GetName());
     }
   }
   if (hidden_deck) {

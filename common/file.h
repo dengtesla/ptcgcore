@@ -32,5 +32,23 @@ int GetProto(const std::string& file_path, T& proto_file) {
   return 0;
 }
 
+template <class T>
+bool SaveToPbtxt(T& proto_file, const std::string& path) {
+  std::string content;
+  google::protobuf::TextFormat::Printer printer;
+  // printer.SetSingleLineMode(true);
+  printer.SetUseUtf8StringEscaping(true);
+  if (printer.PrintToString(proto_file, &content)) {
+    std::fstream out(path, std::ios::out | std::ios::trunc);
+    if (!out.is_open()) return false;
+    out << content;
+    out.close();
+    return true;
+  }
+  else {
+    return false;
+  }
+}
+
 }  // namespace file
 }  // namespace ptcgcore

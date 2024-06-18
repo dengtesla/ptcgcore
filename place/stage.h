@@ -56,7 +56,7 @@ class Stage {
  private:
   int player_id_ = -1;
   config::StageConfig config_;
-  Stadium stadium_pose_; // 竞技场
+  std::shared_ptr<Stadium> stadium_pose_ = nullptr; // 竞技场
   std::multiset<MonsterPile> monster_pose_; // 战斗+备战区
   std::deque<CardPtr> deck_; // 卡组
   std::vector<CardPtr> prize_card_; // 奖赏卡
