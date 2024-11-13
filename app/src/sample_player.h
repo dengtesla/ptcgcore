@@ -33,27 +33,22 @@ class SamplePlayer : public rclcpp::Node {
 
     // init subscriber
     world_cmd_sub_ = this->create_subscription<ProtoMsg>(
-      "player1/command", 100, std::bind(&SamplePlayer::CmdCallback, this, _1), sub_opt);
+        player_name_ + "/command", 100, std::bind(&SamplePlayer::CmdCallback, this, _1), sub_opt);
     state_sub_ = this->create_subscription<ProtoMsg>(
-      "player1/state", 100, std::bind(&SamplePlayer::StateCallback, this, _1), sub_opt);
+        player_name_ + "/state", 100, std::bind(&SamplePlayer::StateCallback, this, _1), sub_opt);
   }
 
  private:
   void timer_callback() {
-    // add some strategy
-    // auto msg = std_msgs::msg::String();
-    // auto command = playground::Command();
-    // command.set_player_id(player_id_);
-    // command.set_type(playground::Command::ATTACK);
-    // command.SerializeToString(&msg.data);
-    // cmd_publisher_->publish(msg);
-    // spdlog::info("send msg");
-    RequestState();
+    // RequestState();
   }
 
   void CmdCallback(const ProtoMsg::SharedPtr cmd);
   void StateCallback(const ProtoMsg::SharedPtr state_msg);
   int RequestState();
+
+  void GetEnergyCards(const ptcgcore::card::state::StageState& state,
+                      std::vector<std::string>& energy_list);
 
   std::string player_name_;
   int player_id_;

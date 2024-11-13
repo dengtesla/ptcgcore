@@ -64,5 +64,5 @@ target_sources(Simulator PRIVATE place/stage.cc)
 target_sources(Simulator PRIVATE card/card_factory.cc)
 
 # add_subdirectory(./app bin)
-add_subdirectory(${PROJECT_SOURCE_DIR}/app build)
+add_subdirectory(${PROJECT_SOURCE_DIR}/app)
 
