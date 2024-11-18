@@ -10,6 +10,7 @@
 
 #include "world_config.pb.h"
 #include "command.pb.h"
+#include "check_result.pb.h"
 
 namespace ptcgcore {
 
@@ -46,7 +47,7 @@ class World {
   int Attack(const int& player_id, const playground::AttackCommand& command);
   bool IsEnergySatisfy(const std::vector<CardPtr>& energys, const card::Attack& attack);
 
-  int CheckWorld();
+  int CheckWorld(world::CheckResult& player_result);
 
  private:
   int go_first_player_id_;

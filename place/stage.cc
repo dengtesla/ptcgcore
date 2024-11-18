@@ -109,18 +109,41 @@ int Stage::SetPokemon(
   return SUCC;
 }
 
+int Stage::SetActive(
+  const std::string& pokemon_uniq_id) {
+  CardPtr target_pkm = nullptr;
+  for (const auto& pile : monster_pose_) {
+    if (pile.main_monster->GetUniqID() == pokemon_uniq_id) {
+      auto new_pile = pile;
+      new_pile.is_active = true;
+      monster_pose_.erase(pile);
+      monster_pose_.insert(new_pile);
+      return SUCC;
+    }
+  }
+  return CARD_NOT_FOUND_ERROR;
+}
+
 int Stage::SetEnergy(const std::string& energy_card_uniq_id,
                      const std::string& target_pkm_uniq_id) {
   int rtn = SUCC;
   // TODO
-  MonsterPile monster_pile;
-  rtn = FindMonsterPileByID(target_pkm_uniq_id, &monster_pile);
-  ERR_CHECK(rtn);
-  CardPtr energy_card_ptr = nullptr;
-  rtn = GetCardPtrByIDFromHand(energy_card_uniq_id, energy_card_ptr);
-  ERR_CHECK(rtn);
-  monster_pile.energys.emplace_back(energy_card_ptr);
-  hand_.erase(energy_card_ptr);
+  {
+    std::lock_guard<std::mutex> mylockguard(mylock);
+    MonsterPile monster_pile;
+    rtn = FindMonsterPileByID(target_pkm_uniq_id, monster_pile);
+    ERR_CHECK(rtn);
+    MonsterPile new_monster_pile = monster_pile;
+    CardPtr energy_card_ptr = nullptr;
+    rtn = GetCardPtrByIDFromHand(energy_card_uniq_id, energy_card_ptr);
+    ERR_CHECK(rtn);
+
+    new_monster_pile.energys.emplace_back(energy_card_ptr);
+    monster_pose_.erase(monster_pile);
+    monster_pose_.insert(new_monster_pile);
+    hand_.erase(energy_card_ptr);
+    energy_seted_ = true;
+  }
   return SUCC;
 }
 
@@ -131,6 +154,7 @@ int Stage::GetState(
     const bool& hidden_prize) const {
   int rtn = SUCC;
   stage_state.set_player_id(player_id_);
+  stage_state.set_energy_seted(energy_seted_);
   // active and bench
   for (const auto& pile : monster_pose_) {
     card::state::MonsterState monster_state;
@@ -163,14 +187,12 @@ int Stage::GetState(
   }
   // hidden msg
   if (hidden_hand) {
-    spdlog::info("hidden hand!");
     stage_state.set_hand_card_num(hand_.size());
   } else {
     for (const auto& card : hand_) {
       auto card_state = stage_state.mutable_hand_state()->add_card();
       card_state->set_card_name(card->GetName());
       card_state->set_card_uniq_id(card->GetUniqID());
-      spdlog::info("card in hand: {}", card->GetName());
     }
   }
   if (hidden_deck) {
@@ -233,25 +255,23 @@ int Stage::MonsterPile2State(
   return SUCC;
 }
 
-int Stage::FindMonsterPileByID(const std::string& card_uniq_id,
-                               const MonsterPile* monster_pile) const {
-  monster_pile = nullptr;
-  for (const auto& pile : monster_pose_) {
+int Stage::FindMonsterPileByID(const std::string& card_uniq_id, MonsterPile& monster_pile) const {
+  for (auto pile : monster_pose_) {
     for (const auto& card : pile.monsters) {
       if (card->GetUniqID() == card_uniq_id) {
-        monster_pile = &pile;
+        monster_pile = pile;
         return SUCC;
       }
     }
     for (const auto& card : pile.energys) {
       if (card->GetUniqID() == card_uniq_id) {
-        monster_pile = &pile;
+        monster_pile = pile;
         return SUCC;
       }
     }
     for (const auto& card : pile.items) {
       if (card->GetUniqID() == card_uniq_id) {
-        monster_pile = &pile;
+        monster_pile = pile;
         return SUCC;
       }
     }
@@ -259,7 +279,7 @@ int Stage::FindMonsterPileByID(const std::string& card_uniq_id,
   return CARD_NOT_FOUND_ERROR;
 }
 
-int Stage::GetCardPtrByIDFromHand(const std::string& card_uniq_id, CardPtr card_ptr) const {
+int Stage::GetCardPtrByIDFromHand(const std::string& card_uniq_id, CardPtr& card_ptr) const {
   for (const auto& card : hand_) {
     if (card->GetUniqID() == card_uniq_id) {
       card_ptr = card;
@@ -269,23 +289,34 @@ int Stage::GetCardPtrByIDFromHand(const std::string& card_uniq_id, CardPtr card_
   return CARD_NOT_FOUND_ERROR;
 }
 
-int Stage::GetActive(const MonsterPile* active) const {
-  active = nullptr;
+int Stage::GetActive(const MonsterPile** active) const {
+  *active = nullptr;
   for (const auto& pile : monster_pose_) {
     if (pile.is_active) {
-      active = &pile;
+      *active = &pile;
       return SUCC;
     }
   }
   return CARD_NOT_FOUND_ERROR;
 }
 
-int Stage::CheckStage() {
+int Stage::UpdateMonsterPile(const MonsterPile& prev_monster_pile,
+  const MonsterPile& new_monster_pile) {
+  monster_pose_.erase(prev_monster_pile);
+  monster_pose_.insert(new_monster_pile);
+  return SUCC;
+}
+
+int Stage::CheckStage(world::StageCheckResult& check_result) {
+  check_result.set_player_id(player_id_);
   for (auto& pile : monster_pose_) {
     auto monster = std::static_pointer_cast<MonsterCard>(pile.main_monster);
     if (pile.damage_counters >= monster->HP()) {
       // 昏厥
-      monster_pose_.erase(pile);
+      check_result.set_knock_out_prize_num(1);
+      if (pile.is_active) {
+        check_result.set_need_move_to_active(true);
+      }
       for (auto& card : pile.monsters) {
         discard_.insert(card);
       }
@@ -295,9 +326,34 @@ int Stage::CheckStage() {
       for (auto& card : pile.items) {
         discard_.insert(card);
       }
+      monster_pose_.erase(pile);
     }
   }
   return SUCC;
+}
+
+int Stage::GetPrize(const int& idx) {
+  const int target_idx = idx % prize_card_.size();
+  auto card = prize_card_[target_idx];
+  hand_.insert(card);
+  prize_card_.erase(prize_card_.begin() + target_idx);
+
+  spdlog::debug("玩家 " + std::to_string(player_id_) + " 拿取 1 张奖赏卡，剩余奖赏卡数：" + std::to_string(prize_card_.size()));
+  return SUCC;
+}
+
+int Stage::SetEnergySeted(const bool energy_seted) {
+  energy_seted_ = energy_seted;
+  return SUCC;
+}
+
+bool Stage::IsActive(const std::string& pkm_id) const {
+  for (auto& pile : monster_pose_) {
+    if (pile.main_monster->GetUniqID() == pkm_id) {
+      return pile.is_active;
+    }
+  }
+  return false;
 }
 
 }  // namespace ptcgcore

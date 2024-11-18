@@ -5,6 +5,8 @@
 
 #include "spdlog/spdlog.h"
 
+#include "check_result.pb.h"
+
 namespace ptcgcore {
 
 int World::GetStage(const int& player_id, StagePtr& stage) {
@@ -63,12 +65,13 @@ int World::Attack(const int& player_id, const playground::AttackCommand& command
   ERR_CHECK(rtn);
   rtn = GetOpponentStage(player_id, oppo_stage);
   ERR_CHECK(rtn);
-  MonsterPile* attack_pkm = nullptr;
-  rtn = player_stage->GetActive(attack_pkm);
+  const MonsterPile* attack_pkm = nullptr;
+  rtn = player_stage->GetActive(&attack_pkm);
   ERR_CHECK(rtn);
-  MonsterPile* oppo_attack_pkm = nullptr;
-  rtn = oppo_stage->GetActive(oppo_attack_pkm);
+  const MonsterPile* oppo_attack_pkm = nullptr;
+  rtn = oppo_stage->GetActive(&oppo_attack_pkm);
   ERR_CHECK(rtn);
+  auto new_oppo_attack_pkm = *oppo_attack_pkm;
   // 1. 检查是否符合攻击条件
   const auto main_pkm = std::static_pointer_cast<MonsterCard>(attack_pkm->main_monster);
   card::Attack attack;
@@ -107,16 +110,27 @@ int World::Attack(const int& player_id, const playground::AttackCommand& command
     damage -= 30;
   }
   if (damage < 0) damage = 0;
-  oppo_attack_pkm->damage_counters += damage;
+  new_oppo_attack_pkm.damage_counters += damage;
+
+  spdlog::debug("玩家 " + std::to_string(player_id) + " 使用泪眼蜥攻击，打出 " + std::to_string(damage) + "点伤害");
+  rtn = oppo_stage->UpdateMonsterPile(*oppo_attack_pkm, new_oppo_attack_pkm);
+  ERR_CHECK(rtn);
   return SUCC;
 }
 
-int World::CheckWorld() {
+// 将检查结果抛出来，
+int World::CheckWorld(world::CheckResult& player_result) {
   int rtn = SUCC;
-  rtn = player1_stage_->CheckStage();
+  auto* stage1_check_result = player_result.add_stage_check_result();
+  rtn = player1_stage_->CheckStage(*stage1_check_result);
   ERR_CHECK(rtn);
-  player2_stage_->CheckStage();
+  auto* stage2_check_result = player_result.add_stage_check_result();
+  rtn = player2_stage_->CheckStage(*stage2_check_result);
   ERR_CHECK(rtn);
+
+  const int tmp = stage1_check_result->knock_out_prize_num();
+  stage1_check_result->set_knock_out_prize_num(stage2_check_result->knock_out_prize_num());
+  stage2_check_result->set_knock_out_prize_num(tmp);
   return SUCC;
 }
 

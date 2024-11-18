@@ -22,7 +22,32 @@ void SendMsg(const rclcpp::Publisher<ProtoMsg>::SharedPtr publisher,
     uint16_t_data[i] = (uint16_t)(buffer[i]);
   }
   msg.data = uint16_t_data;
+  // for (size_t i = 0; i < size; i++) {
+  //   spdlog::info(uint16_t_data[i]);
+  // }
   publisher->publish(msg);
+}
+
+template <typename T>
+void PackMsg(const T& msg_proto, std::vector<uint16_t>& uint16_t_data) {
+  char* buffer;
+  size_t size = msg_proto.ByteSizeLong();
+  buffer = static_cast<char*>(malloc(size * sizeof(char)));
+  msg_proto.SerializeToArray(buffer, size);
+  uint16_t_data.resize(size);
+  for (size_t i = 0; i < size; i++) {
+    uint16_t_data[i] = (uint16_t)(buffer[i]);
+  }
+}
+
+template <typename T>
+void DumpMsg(const std::vector<uint16_t> msg, T& msg_proto) {
+  const size_t size = msg.size();
+  std::vector<char> buffer(size);
+  for (size_t i = 0; i < size; i++) {
+    buffer[i] = (char)msg[i];
+  }
+  msg_proto.ParseFromArray(&buffer[0], size);
 }
 
 template<typename T>

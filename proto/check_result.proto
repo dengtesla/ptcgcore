@@ -1,0 +1,13 @@
+syntax = "proto2";
+
+package ptcgcore.world;
+
+message CheckResult {
+  repeated StageCheckResult stage_check_result = 1;
+}
+
+message StageCheckResult {
+  optional int32 player_id = 1;
+  optional int32 knock_out_prize_num = 2;
+  optional bool need_move_to_active = 3 [default = false];
+}

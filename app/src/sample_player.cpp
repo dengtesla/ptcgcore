@@ -15,6 +15,7 @@ void SamplePlayer::CmdCallback(const ProtoMsg::SharedPtr cmd) {
       return;
     }
     RequestState();
+    spdlog::info("get state succ!!");
     for (const auto& stage_state : curr_state_.stage_state()) {
       if (stage_state.player_id() != player_id_) continue;
       for (const auto& card : stage_state.hand_state().card()) {
@@ -22,7 +23,8 @@ void SamplePlayer::CmdCallback(const ProtoMsg::SharedPtr cmd) {
           // set 该宝可梦
           cmd_output.set_type(playground::Command::SET_POKEMON);
           cmd_output.mutable_set_pokemon_command()->set_active_pokemon_id(card.card_uniq_id());
-          SendMsg(cmd_publisher_, cmd_output);
+          // SendMsg(cmd_publisher_, cmd_output);
+          SendRequestHooked(cmd_output);
           return;
         }
       }
@@ -56,7 +58,8 @@ void SamplePlayer::CmdCallback(const ProtoMsg::SharedPtr cmd) {
     }
     if (found_card) {
       cmd_output.set_type(playground::Command::SET_POKEMON);
-      SendMsg(cmd_publisher_, cmd_output);
+      // SendMsg(cmd_publisher_, cmd_output);
+      SendRequestHooked(cmd_output);
       return;
     }
     // 1. 如果手里有能量，且还未填过能量
@@ -89,41 +92,77 @@ void SamplePlayer::CmdCallback(const ProtoMsg::SharedPtr cmd) {
               my_state.active_state().main_pokemon().card_uniq_id());
           }
         }
-        SendMsg(cmd_publisher_, cmd_output);
+        // SendMsg(cmd_publisher_, cmd_output);
+        SendRequestHooked(cmd_output);
         return;
       }
     }
     // 2. 如果满足条件，发起进攻
-    // if ()
+    if (my_state.active_state().energy_card().size() >= 2) {
+      cmd_output.set_type(playground::Command::ATTACK);
+      cmd_output.mutable_attack_command()->set_attack_num(1);
+      SendRequestHooked(cmd_output);
+      return;
+    }
+    // 3. 否则结束回合
+    cmd_output.set_type(playground::Command::END_TURN);
+    SendMsg(cmd_publisher_, cmd_output);
   } else if (cmd_proto.type() == playground::Command::DUEL_PRIZE) {
     spdlog::info("received duel prize!");
     cmd_output.set_type(playground::Command::GET_PRIZE);
     cmd_output.mutable_get_prize_command()->set_get_prize_idx(1);
-    SendMsg(cmd_publisher_, cmd_output);
+    // SendMsg(cmd_publisher_, cmd_output);
+    SendRequestHooked(cmd_output);
   } else if (cmd_proto.type() == playground::Command::NEED_MOVE_TO_ACTIVE) {
     spdlog::info("received need move to active!");
     cmd_output.set_type(playground::Command::MOVE_TO_ACTIVE);
-    cmd_output.mutable_move_to_active_command()->set_pkm_id(0); // TODO
-    SendMsg(cmd_publisher_, cmd_output);
+    for (const auto& stage_state : curr_state_.stage_state()) {
+      if (stage_state.player_id() != player_id_) continue;
+      cmd_output.mutable_move_to_active_command()->set_pkm_id(
+        stage_state.benched_state(0).main_pokemon().card_uniq_id());
+      break;
+    }
+    // SendMsg(cmd_publisher_, cmd_output);
+    SendRequestHooked(cmd_output);
   }
 }
 
-void SamplePlayer::StateCallback(const ProtoMsg::SharedPtr state_msg) {
-  DumpMsg(state_msg, curr_state_);
+void SamplePlayer::WorldStateCallback(
+  rclcpp::Client<ptcg_world::srv::WorldState>::SharedFuture response_future) {
+  auto response = response_future.get();
+  DumpMsg(response->state, curr_state_);
   spdlog::info("received state: {}", GetDebugString(curr_state_));
   receive_state_ = true;
-  // ptcgcore::file::save_to_pbtxt(curr_state_, "./output2.pb.txt");
+}
+
+void SamplePlayer::SimpleCmdCallback(
+  rclcpp::Client<ptcg_world::srv::Command>::SharedFuture response_future) {
+  // pass
 }
 
 int SamplePlayer::RequestState() {
   receive_state_ = false;
   ptcgcore::card::state::StateRequest state_request;
   state_request.set_player_id(player_id_);
-  SendMsg(state_request_pub_, state_request);
-
-  while (!receive_state_) {
-    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+  while (!get_state_client_->wait_for_service(1s)) {
+    if (!rclcpp::ok()) {
+      RCLCPP_ERROR(rclcpp::get_logger("rclcpp"),
+        "Interrupted while waiting for the service. Exiting.");
+      return 0;
+    }
+    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "service not available, waiting again...");
   }
+
+  auto request = std::make_shared<ptcg_world::srv::WorldState::Request>();
+  PackMsg(state_request, request->cmd);
+  auto result = get_state_client_->async_send_request(
+    request, std::bind(&SamplePlayer::WorldStateCallback, this, std::placeholders::_1));
+  // std::future_status status = result.wait_for(500ms);
+  spdlog::info("wait for state...");
+  result.wait_for(500ms);
+  while (receive_state_ != true) {
+  }
+
   return SUCC;
 }
 

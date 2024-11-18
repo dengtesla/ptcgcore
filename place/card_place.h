@@ -48,6 +48,12 @@ class ICardPlace {
 
 class MonsterPile : public ICardPlace {
  public:
+   MonsterPile() {
+     monsters.clear();
+     energys.clear();
+     items.clear();
+   };
+
   CardPtr main_monster = nullptr;
   std::vector<CardPtr> monsters;
   std::vector<CardPtr> energys;
@@ -60,6 +66,18 @@ class MonsterPile : public ICardPlace {
     return this->is_active;
   }
 
+  const bool operator==(const MonsterPile& monster_pile) const {
+    return main_monster->GetName() == monster_pile.main_monster->GetName();
+  }
+
+  struct HashFunction {
+    size_t operator() (const MonsterPile& monster_pile) const {
+      if (monster_pile.main_monster == nullptr) {
+        return std::hash<std::string>{}("");
+      }
+      return std::hash<std::string>{}(monster_pile.main_monster->GetUniqID());
+    }
+  };
 };
 
 class Stadium : public ICardPlace {

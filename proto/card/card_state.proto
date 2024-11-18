@@ -29,6 +29,9 @@ message StageState {
   optional CardPileState discard_state = 4;
   optional CardPileState lost_zone_state = 5;
   optional CardPileState stadium_state = 6;
+  optional bool energy_seted = 7;
+  optional bool supporter_used = 8;
+  optional bool v_star_used = 9;
   // 以下为隐藏资源，一般来说只会发布几个 num 字段
   optional int32 hand_card_num = 101;
   optional int32 deck_card_num = 102;

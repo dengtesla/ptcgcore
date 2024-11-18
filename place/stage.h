@@ -11,6 +11,7 @@
 
 #include "world_config.pb.h"
 #include "card/card_state.pb.h"
+#include "check_result.pb.h"
 
 namespace ptcgcore {
 
@@ -28,14 +29,17 @@ class Stage {
   int GetLostZone(std::vector<CardPtr>& lost_zone) const;
   int GetDeck(std::vector<CardPtr>& deck, bool hidden = true) const;
   int GetPrizeCard(std::vector<CardPtr>& prize_card, bool hidden = true) const;
-  int GetActive(const MonsterPile* active) const;
+  int GetActive(const MonsterPile** active) const;
   int GetPokemonNum() const { return static_cast<int>(monster_pose_.size()); };
+  int GetPrizeNum() const { return prize_card_.size(); };
 
   int GetState(
       card::state::StageState& stage_state,
       const bool& hidden_hand = false,
       const bool& hidden_deck = true,
       const bool& hidden_prize = true) const;
+
+  bool IsActive(const std::string& pkm_id) const;
 
   // 修改场上状态，非 const 方法
   int ShuffleDeck();
@@ -50,21 +54,29 @@ class Stage {
   int SetPokemon(
       const std::string& pokemon_uniq_id,
       const bool& is_active = false);
+  int SetActive(const std::string& pokemon_uniq_id);
   int SetEnergy(const std::string& energy_card_uniq_id, const std::string& target_pkm_uniq_id);
-  int CheckStage();
+  int CheckStage(world::StageCheckResult& check_result);
+  int GetPrize(const int& idx); // 获取第 idx 张奖。
+  int SetEnergySeted(const bool energy_seted);
+  int UpdateMonsterPile(const MonsterPile& prev_monster_pile,
+    const MonsterPile& new_monster_pile);
 
  private:
   int player_id_ = -1;
   config::StageConfig config_;
   std::shared_ptr<Stadium> stadium_pose_ = nullptr; // 竞技场
-  std::multiset<MonsterPile> monster_pose_; // 战斗+备战区
+  std::unordered_set<MonsterPile, MonsterPile::HashFunction> monster_pose_;         // 战斗+备战区
   std::deque<CardPtr> deck_; // 卡组
   std::vector<CardPtr> prize_card_; // 奖赏卡
   std::multiset<CardPtr> hand_; // 手牌
-  std::multiset<CardPtr> discard_; // 弃牌区
+  std::unordered_set<CardPtr> discard_; // 弃牌区
   std::multiset<CardPtr> lost_zone_; // 放逐区
 
   std::vector<IBuff> buff_; // 对玩家的 buff
+  bool energy_seted_ = false;
+  std::mutex mylock;
+
  private:
   int MonsterPile2State(
       const MonsterPile& monster_pile,
@@ -77,9 +89,9 @@ class Stage {
 
   int FindMonsterFromStage(const std::string& card_uniq_id, const CardPtr card_target) const;
 
-  int FindMonsterPileByID(const std::string& card_uniq_id, const MonsterPile* monster_pile) const;
+  int FindMonsterPileByID(const std::string& card_uniq_id, MonsterPile& monster_pile) const;
 
-  int GetCardPtrByIDFromHand(const std::string& card_uniq_id, CardPtr card_ptr) const;
+  int GetCardPtrByIDFromHand(const std::string& card_uniq_id, CardPtr& card_ptr) const;
 };
 
 using StagePtr = std::shared_ptr<Stage>;

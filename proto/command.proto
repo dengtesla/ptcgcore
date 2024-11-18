@@ -13,12 +13,17 @@ message Command {
     EVOLUTE_MONSTER = 4;
     SET_ENERGY = 5;
     RETREAT = 6;
+    GET_PRIZE = 7;
+    MOVE_TO_ACTIVE = 8;
+    END_TURN = 9;
 
     // 以下为系统发送的指令
     GAME_START = 101;
     GAME_OVER = 102;
     INIT_POKEMON = 103;
-    MOVE_TO_ACTIVE = 104;
+    NEED_MOVE_TO_ACTIVE = 104;
+    FREE_ACTION = 105;
+    DUEL_PRIZE = 106;
 
     // 表达状态、无其他信息的 command
     STATE_COMMAND = 201;
@@ -32,12 +37,16 @@ message Command {
     EvoMonsterCommand evo_monster_command = 14;
     SetEnergyCommand set_energy_command = 15;
     RetreatCommand retreat_command = 16;
+    GetPrizeCommand get_prize_command = 17;
+    MoveToActiveCommand move_to_active_command = 18;
 
     // system command
     GameStartCommand game_start_command = 101;
     GameOverCommand game_over_command = 102;
     InitPokemonCommand init_pokemon_command = 103;
-    MoveToActiveCommand move_to_active_command = 104;
+    NeedMoveToActiveCommand need_move_to_active_command = 104;
+    FreeActionCommand free_action_command = 105;
+    DuelPrizeCommand duel_prize_command = 106;
 
     // state command
     StateCommand state_command = 201;
@@ -74,14 +83,37 @@ message RetreatCommand {}
 // system command
 message GameStartCommand {
   optional int32 first_player = 1;
+  optional bool first_player_set_finish = 2;
+  optional bool second_player_set_finish =  3;
 }
 
 message GameOverCommand {}
 
 message InitPokemonCommand {}
 
-message MoveToActiveCommand {}
+// 宝可梦被昏厥后，推宝可梦上战斗场
+message MoveToActiveCommand {
+  optional string pkm_id = 1;
+}
 
+// 宝可梦被昏厥后，需要推宝可梦上战斗场
+message NeedMoveToActiveCommand {
+  optional int32 player_id = 1;
+}
+
+// 自由行动阶段
+message FreeActionCommand {
+  optional int32 player_id = 1;
+}
+
+message DuelPrizeCommand {
+  optional int32 player_id = 1;
+  optional int32 get_prize_num = 2;
+}
+
+message GetPrizeCommand {
+  optional int32 get_prize_idx = 1;
+}
 
 // state command
 message StateCommand {

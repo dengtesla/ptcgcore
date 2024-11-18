@@ -1,0 +1,4 @@
+uint16[] cmd
+---
+int32 status
+string error_msg

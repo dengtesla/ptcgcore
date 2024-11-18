@@ -4,7 +4,8 @@
 #include "std_msgs/msg/string.hpp"
 #include "std_msgs/msg/u_int16_multi_array.hpp"
 #include "spdlog/spdlog.h"
-// #include "app/srv/command.hpp"
+#include "ptcg_world/srv/command.hpp"
+#include "ptcg_world/srv/world_state.hpp"
 
 #include "world.h"
 #include "pb_transport_helper.h"
@@ -31,12 +32,7 @@ class PtcgWorld : public rclcpp::Node {
     player1_sub_ = this->create_subscription<ProtoMsg>(
         "player1", 10, std::bind(&PtcgWorld::PlayerCallback, this, _1), sub_opt);
     player2_sub_ = this->create_subscription<ProtoMsg>(
-        "player2", 10, std::bind(&PtcgWorld::PlayerCallback, this, _1), sub_opt);
-    state_sub_ = this->create_subscription<ProtoMsg>(
-        "state_request", 10, std::bind(&PtcgWorld::StateCallback, this, _1), sub_opt);
-    // player_server_ = this->create_service<ProtoMsg>() state_sub_ =
-    //     this->create_subscription<ProtoMsg>(
-    //         "state_request", 10, std::bind(&PtcgWorld::StateCallback, this, _1), sub_opt);
+      "player2", 10, std::bind(&PtcgWorld::PlayerCallback, this, _1), sub_opt);
 
     // init publisher
     player1_state_pub_ = this->create_publisher<ProtoMsg>("player1/state", 100);
@@ -50,8 +46,34 @@ class PtcgWorld : public rclcpp::Node {
     player1_id_ = world_ptr_->FirstPlayerID();
     player2_id_ = world_ptr_->SecondPlayerID();
 
+    get_state_service_ = this->create_service<ptcg_world::srv::WorldState>(
+      "ptcg_world/state_request",
+      std::bind(&PtcgWorld::StateCallback, this, std::placeholders::_1, std::placeholders::_2),
+      rmw_qos_profile_services_default, callback_group_);
+
+    set_energy_service_ = this->create_service<ptcg_world::srv::Command>(
+      "ptcg_world/set_energy",
+      std::bind(&PtcgWorld::SimpleCmdCallback, this, std::placeholders::_1,
+        std::placeholders::_2),
+      rmw_qos_profile_services_default, callback_group_);
+    attack_service_ = this->create_service<ptcg_world::srv::Command>(
+      "ptcg_world/attack",
+      std::bind(&PtcgWorld::AttackCallback, this, std::placeholders::_1, std::placeholders::_2),
+      rmw_qos_profile_services_default, callback_group_);
+    take_prize_service_ = this->create_service<ptcg_world::srv::Command>(
+      "ptcg_world/take_prize",
+      std::bind(&PtcgWorld::SimpleCmdCallback, this, std::placeholders::_1,
+        std::placeholders::_2),
+      rmw_qos_profile_services_default, callback_group_);
+    set_pokemon_service_ = this->create_service<ptcg_world::srv::Command>(
+      "ptcg_world/set_pokemon",
+      std::bind(&PtcgWorld::SimpleCmdCallback, this, std::placeholders::_1,
+        std::placeholders::_2),
+      rmw_qos_profile_services_default, callback_group_);
+
     // setup command(TODO: hardcode, fix it.)
-    timer_ = this->create_wall_timer(500ms, std::bind(&PtcgWorld::TimeCallback, this));
+    timer_ =
+      this->create_wall_timer(500ms, std::bind(&PtcgWorld::TimeCallback, this), callback_group_);
   }
 
   void Setup();
@@ -63,11 +85,21 @@ class PtcgWorld : public rclcpp::Node {
   // 接受 player2 的指令
   rclcpp::Subscription<ProtoMsg>::SharedPtr player2_sub_;
 
-  // rclcpp::Service<app::srv::command>::SharedPtr get_state_service_;
-  // rclcpp::Service<>::SharedPtr set_energy_service_;
-  // rclcpp::Service<>::SharedPtr set_attack_service_;
-  // rclcpp::Service<>::SharedPtr take_prize_service_;
-  // rclcpp::Service<>::SharedPtr set_pokemon_service_;
+  // server 在返回前，如果有其他需要处理的事项（比如：推怪）
+  // 那么会先发送 request 给 player，要求 player 进行处理
+  // player 处理后才会正常返回。
+
+  // server: 返回现在场上环境
+  rclcpp::Service<ptcg_world::srv::WorldState>::SharedPtr get_state_service_;
+  // server: 填充能量
+  rclcpp::Service<ptcg_world::srv::Command>::SharedPtr set_energy_service_;
+  // server: 使用招式攻击
+  // 使用招式进行攻击的过程中，可能会需要 player 处理其他事项（比如：拿奖、推怪）
+  rclcpp::Service<ptcg_world::srv::Command>::SharedPtr attack_service_;
+  // server: 拿去奖赏卡
+  rclcpp::Service<ptcg_world::srv::Command>::SharedPtr take_prize_service_;
+  // server: 放置宝可梦
+  rclcpp::Service<ptcg_world::srv::Command>::SharedPtr set_pokemon_service_;
 
   // 监听 player 的 state 请求
   rclcpp::Subscription<ProtoMsg>::SharedPtr state_sub_;
@@ -104,22 +136,31 @@ class PtcgWorld : public rclcpp::Node {
 
   void PlayerCallback(const ProtoMsg::SharedPtr cmd);
 
-  void StateCallback(const ProtoMsg::SharedPtr cmd);
+  void StateCallback(const ptcg_world::srv::WorldState::Request::SharedPtr request,
+    ptcg_world::srv::WorldState::Response::SharedPtr response);
+
+  void SimpleCmdCallback(const ptcg_world::srv::Command::Request::SharedPtr request,
+    ptcg_world::srv::Command::Response::SharedPtr response);
+
+  void AttackCallback(const ptcg_world::srv::Command::Request::SharedPtr request,
+    ptcg_world::srv::Command::Response::SharedPtr response);
 
   void TimeCallback() {
+    // setup 阶段，只会进入一次。
     if (first_setup_) {
       first_setup_ = false;
       Setup();
     }
   };
 
-  void Pend();
+  bool PendIsFinished();
 
   void GameSetupPhase(const playground::Command& cmd_proto);
   void SetMonster(const playground::Command& cmd);
   void SetEnergy(const playground::Command& cmd);
   void Attack(const playground::Command& cmd);
   void GetPrize(const playground::Command& cmd);
+  void MoveToActive(const playground::Command& cmd);
 
   bool PlayerSetFinish(const int& player_id) {
     if (player_id == player1_id_) {

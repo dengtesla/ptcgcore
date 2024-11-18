@@ -6,7 +6,7 @@ cp proto/CMakeLists.txt proto_out/
 
 cd proto
 protos=`find . -name "*.proto"`
-${PROTOC} ${protos} --cpp_out=../proto_out/
+${PROTOC} ${protos} --cpp_out=../proto_out/ --python_out=../proto_out/
 
 if [[ ! -d ../build ]];then
   mkdir ../build
@@ -15,3 +15,5 @@ cd ../build
 cmake ..
 make
 cd -
+
+# export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/mnt/public/szdeng/ptcgcore/build/app
