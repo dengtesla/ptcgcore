@@ -23,6 +23,12 @@ void PtcgWorld::StateCallback(const ptcg_world::srv::WorldState::Request::Shared
     }
   }
   PackMsg(world_state, response->state);
+  // 用于记录，不参与模拟器模拟
+  if (state_request.player_id() == player1_id_) {
+    SendMsg(player1_state_pub_, world_state);
+  } else {
+    SendMsg(player2_state_pub_, world_state);
+  }
   spdlog::info("state call finish <<<<<<<<<<<");
 }
 

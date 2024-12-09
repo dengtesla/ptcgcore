@@ -309,6 +309,7 @@ int Stage::UpdateMonsterPile(const MonsterPile& prev_monster_pile,
 
 int Stage::CheckStage(world::StageCheckResult& check_result) {
   check_result.set_player_id(player_id_);
+  std::vector<MonsterPile> need_delete_piles;
   for (auto& pile : monster_pose_) {
     auto monster = std::static_pointer_cast<MonsterCard>(pile.main_monster);
     if (pile.damage_counters >= monster->HP()) {
@@ -326,8 +327,11 @@ int Stage::CheckStage(world::StageCheckResult& check_result) {
       for (auto& card : pile.items) {
         discard_.insert(card);
       }
-      monster_pose_.erase(pile);
+      need_delete_piles.push_back(pile);
     }
+  }
+  for (auto& pile : need_delete_piles) {
+    monster_pose_.erase(pile);
   }
   return SUCC;
 }
